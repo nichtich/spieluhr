@@ -21,16 +21,21 @@ GetOptions(
 pod2usage(1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
+my $o = $output;
 while (@ARGV) {
 	my $arg = shift @ARGV;
 	given ($arg) {
 		$range = $arg when /^.+\.\..+$/;
 		$width = $arg when /^[0-9,.]+([mc]m|in(ch)?|px)$/;
-		default { ... }
+		$output = $arg when /\.(png|pdf|ps|svg|txt)$/;
+		$input = $arg when /\.(abc|txt)$/;
+		default { $input = $arg } # TODO: really?
 	}
 	# TODO: don't call twice with same output
-	abc2punch( range => $range, width => $width, input => $input, output => $output );
+	abc2punch( range => $range, width => $width, input => $input, output => $output )
+		if $output ne $o;
 }
+abc2punch( range => $range, width => $width, input => $input ) unless defined $o;
 
 sub abc2punch {
 	my %opt = @_;
@@ -40,7 +45,13 @@ sub abc2punch {
 			(map { "  $_: ".$opt{$_} } keys %opt ), '';
 	}
 
-#	...
+	my $tape = Punched::Tape->new;
+
+	...
+
+	if (!defined $opt{output}) {
+		print $tape->show(frame => 1, wide => 1);
+	}
 }
 
 =head1 NAME

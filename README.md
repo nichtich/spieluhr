@@ -84,7 +84,7 @@ A selection of additional special characters includes:
 
 Why hacking a quick solution if you can spent more time creating an abstraction
 that nobody needs? I could not hesitate to create a Perl module for punched
-tape: L<https://github.com/nichtich/Punched-Tape>. This module is used to
+tape: <https://github.com/nichtich/Punched-Tape>. This module is used to
 finally create punched tape diagrams for printing. One layer above there is a
 parser for simplified ABC notation that creates the tape. Finally there is a
 command line client `abc2punch` to convert ABC notation to punched card images.
