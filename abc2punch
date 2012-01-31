@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+
+use 5.12.0;
+use Pod::Usage;
+use Getopt::Long;
+use Punched::Tape;
+
+my ($man,$help,$range,$width,$input,$output,$verbose);
+
+# TODO:
+# - margin (before and after)
+# - note range with or without half tones?
+
+GetOptions(
+	'help|?'   => \$help, 
+	'man' 	   => \$man,
+	'range:s'  => \$range,
+	'width:s'  => \$width,
+	'verbose'  => \$verbose,
+) or pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+
+while (@ARGV) {
+	my $arg = shift @ARGV;
+	given ($arg) {
+		$range = $arg when /^.+\.\..+$/;
+		$width = $arg when /^[0-9,.]+([mc]m|in(ch)?|px)$/;
+		default { ... }
+	}
+	# TODO: don't call twice with same output
+	abc2punch( range => $range, width => $width, input => $input, output => $output );
+}
+
+sub abc2punch {
+	my %opt = @_;
+
+	if ($verbose) {
+		print join "\n", "Options:",
+			(map { "  $_: ".$opt{$_} } keys %opt ), '';
+	}
+
+#	...
+}
+
+=head1 NAME
+
+abc2punch - Simplified ABC music notation to punched cards for music boxes
+
+=head1 SYNOPSIS
+
+abc2punch [options] [arguments]
+
+  Options:
+     -help        brief help message
+     -man         full documentation
+     -range X..Y  supported range of notes 
+     -width nn    physical width of punched tape
+
+  Arguments should be detected automatically, for instance
+
+    40mm      is a width
+    C..c'     is a range
+    foo.abc   is an input file
+    bar.svg   is an output file
+
+=cut
