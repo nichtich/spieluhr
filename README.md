@@ -5,7 +5,7 @@ music is stored on punched tape, which is an "obsolete form of data storage",
 [according to Wikipedia](http://en.wikipedia.org/wiki/Punched_tape). I don't
 think so! I bought the music box at a <http://www.spieluhr.de> and choosed [the
 cheapest version](http://www.spieluhr.de/Artikel/varAussehen.asp?ArtikelNr=4905) 
-for 23.44€, so it is quite limited --- but still it provides a lot. You get:
+for 23.44€ (actually you can also [get if for 20€](www.mondschnuppe.de/shop/article_Mu037/"Das-Wolferl".html)), so it is quite limited --- but still it provides a lot. You get:
 
 * A 15 bit parallel central processing unit
 * A nice wooden box with one input and one output interface

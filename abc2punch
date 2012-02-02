@@ -1,56 +1,68 @@
 #!/usr/bin/perl
 
 use 5.12.0;
+use Getopt::Long 2.35;
 use Pod::Usage;
-use Getopt::Long;
+use Data::Dumper;
 use Punched::Tape;
+use Punched::Tape::Draw;
 
-my ($man,$help,$range,$width,$input,$output,$verbose);
+my $output_regexp = qr{\.(png|pdf|ps|svg)$|^-$};
 
-# TODO:
-# - margin (before and after)
-# - note range with or without half tones?
+my $output = '-';
+my %opt = map { $_ => '' } qw(range width input debug);
+$opt{margin} = [ ];
 
 GetOptions(
-	'help|?'   => \$help, 
-	'man' 	   => \$man,
-	'range:s'  => \$range,
-	'width:s'  => \$width,
-	'verbose'  => \$verbose,
+	'range=s'  		=> \$opt{range},
+	'width=s'  		=> \$opt{width},
+	'input=s'		=> \$opt{input},
+	'output=s'		=> \$output,
+	'debug'  		=> \$opt{debug},
+	'margin=s{1,4}' => \$opt{margin},
 ) or pod2usage(2);
-pod2usage(1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
-my $o = $output;
 while (@ARGV) {
 	my $arg = shift @ARGV;
+
 	given ($arg) {
-		$range = $arg when /^.+\.\..+$/;
-		$width = $arg when /^[0-9,.]+([mc]m|in(ch)?|px)$/;
-		$output = $arg when /\.(png|pdf|ps|svg|txt)$/;
-		$input = $arg when /\.(abc|txt)$/;
-		default { $input = $arg } # TODO: really?
+		$opt{range} = $arg when /^.+\.\..+$/;
+		$opt{width} = $arg when /^[0-9,.]+([mc]m|in(ch)?|px|pt)$/;
+		when ($output_regexp) {
+			abc2punch( %opt, output => $_ );
+			$output = '';
+		};
+		$opt{input} = $arg when /\.(abc|txt)$/;
+		default { $opt{input} = $arg }
 	}
-	# TODO: don't call twice with same output
-	abc2punch( range => $range, width => $width, input => $input, output => $output )
-		if $output ne $o;
 }
-abc2punch( range => $range, width => $width, input => $input ) unless defined $o;
+abc2punch( %opt, output => $output ) if $output;
 
 sub abc2punch {
 	my %opt = @_;
 
-	if ($verbose) {
-		print join "\n", "Options:",
-			(map { "  $_: ".$opt{$_} } keys %opt ), '';
-	}
+	print STDERR Data::Dumper->Dump([\%opt],['opt']) if $opt{debug};
+
+	# TODO: interprete range (how with half tones?), width, margin
 
 	my $tape = Punched::Tape->new;
 
-	...
+	local @ARGV = $opt{input} if $opt{input} !~ /^-?$/;
+	while (<>) {
+		print STDERR $_ if $opt{debug};
+		# TODO: parse ABC format
+	}
 
-	if (!defined $opt{output}) {
-		print $tape->show(frame => 1, wide => 1);
+	if ( $opt{output} =~ /\.(svg|pdf|ps|png)$/ ) {
+		my %draw = (); # TODO: drawing options (size in points etc.)
+		draw_tape( $tape, $opt{output}, %draw );
+	} else {
+		my $out = \*STDOUT;
+		if ($opt{output} !~ /^-?$/) {
+			open(my $out, ">", $opt{output}) or die "failed to open $opt{output}\n";
+		}
+		# TODO: should print frame
+		print $out $tape->show( frame => 1, wide => 1 );
 	}
 }
 
@@ -63,10 +75,14 @@ abc2punch - Simplified ABC music notation to punched cards for music boxes
 abc2punch [options] [arguments]
 
   Options:
-     -help        brief help message
-     -man         full documentation
+     -help        this help message
+	 -version     show version
+	 -input       input file in ABC format
+	 -output      output file (format guessed from extension)
      -range X..Y  supported range of notes 
      -width nn    physical width of punched tape
+	 -margin nn   physical margin(s) of punched tape (1 to 4 values)
+	 -debug       show debugging information
 
   Arguments should be detected automatically, for instance
 
@@ -74,5 +90,6 @@ abc2punch [options] [arguments]
     C..c'     is a range
     foo.abc   is an input file
     bar.svg   is an output file
+	20mm..x10mm   is margin
 
 =cut
